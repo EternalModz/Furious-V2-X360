@@ -1,41 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XDevkit;
-using XDRPC;
+﻿using XDevkit;
 using XDRPCPlusPlus;
 
-namespace FuriousXbox.XboxLib.MW2
+namespace FuriousXbox.XboxLib.MW2;
+
+internal sealed class XexManager
 {
-    internal class XexManager
+    public enum Callback_Index
     {
-        public static uint callAddr = 0x82D67100;
-        public static uint rCallAddr = 0x82D67200;
+        fog = 0,
+        light = 1,
+        hud = 2,
+        aimbot = 3
+    }
 
-        public static void call(IXboxConsole xbox, int index, int value)
-        {
-            xbox.WriteInt32(callAddr + ((uint)index * 4), value);
-        }
+    public const int call_on = 2;
+    public const int call_off = 1;
 
-        public static int rCall(IXboxConsole xbox, int index)
+    public const uint callAddr = 0x82D67100;
+    public const uint rCallAddr = 0x82D67200;
+
+    public static void call(IXboxConsole xbox, int index, int value)
+    {
+        xbox.WriteInt32(callAddr + ((uint)index * 4), value);
+    }
+
+    public static int rCall(IXboxConsole xbox, int index)
+    {
+        return xbox.ReadInt32(rCallAddr + ((uint)index * 4));
+    }
+    public static void rCalled(IXboxConsole xbox, int index)
+    {
+        xbox.WriteInt32(rCallAddr + ((uint)index * 4), 0);
+    }
+    public static bool callBack(IXboxConsole xbox, int index)
+    {
+        if (rCall(xbox, index) > 0)
         {
-            return xbox.ReadInt32(rCallAddr + ((uint)index * 4));
+            rCalled(xbox, index);
+            return true;
         }
-        public static void rCalled(IXboxConsole xbox, int index)
-        {
-            xbox.WriteInt32(rCallAddr + ((uint)index * 4), 0);
-        }
-        public static bool callBack(IXboxConsole xbox, int index)
-        {
-            if (rCall(xbox, index) > 0)
-            {
-                rCalled(xbox, index);
-                return true;
-            }
-            else
-                return false;
-        }
+        else
+            return false;
     }
 }
